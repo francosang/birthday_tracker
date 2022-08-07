@@ -1,6 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:settings_service/settings_service.dart';
 
-import 'settings_service.dart';
+extension _AppThemeConverterExtension on AppTheme {
+  ThemeMode toThemeMode() {
+    switch (this) {
+      case AppTheme.system:
+        return ThemeMode.system;
+      case AppTheme.light:
+        return ThemeMode.light;
+
+      case AppTheme.dark:
+        return ThemeMode.dark;
+    }
+  }
+}
+
+extension _ThemeModeConverterExtension on ThemeMode {
+  AppTheme toAppTheme() {
+    switch (this) {
+      case ThemeMode.system:
+        return AppTheme.system;
+      case ThemeMode.light:
+        return AppTheme.light;
+      case ThemeMode.dark:
+        return AppTheme.dark;
+    }
+  }
+}
 
 /// A class that many Widgets can interact with to read user settings, update
 /// user settings, or listen to user settings changes.
@@ -11,7 +37,7 @@ class SettingsController with ChangeNotifier {
   SettingsController(this._settingsService);
 
   // Make SettingsService a private variable so it is not used directly.
-  final SettingsService _settingsService;
+  final ThemeSettingsService _settingsService;
 
   // Make ThemeMode a private variable so it is not updated directly without
   // also persisting the changes with the SettingsService.
@@ -24,7 +50,9 @@ class SettingsController with ChangeNotifier {
   /// local database or the internet. The controller only knows it can load the
   /// settings from the service.
   Future<void> loadSettings() async {
-    _themeMode = await _settingsService.themeMode();
+    final appTheme = await _settingsService.appTheme();
+
+    _themeMode = appTheme.toThemeMode();
 
     // Important! Inform listeners a change has occurred.
     notifyListeners();
@@ -45,6 +73,6 @@ class SettingsController with ChangeNotifier {
 
     // Persist the changes to a local database or the internet using the
     // SettingService.
-    await _settingsService.updateThemeMode(newThemeMode);
+    await _settingsService.updateAppTheme(newThemeMode.toAppTheme());
   }
 }

@@ -19,6 +19,8 @@ dependencies:
     path: persistence
   persistence_hive_impl:
     path: persistence_hive_impl
+  settings_service:
+    path: settings_service
 
 dev_dependencies:
   flutter_test:
