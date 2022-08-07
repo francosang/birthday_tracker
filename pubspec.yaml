@@ -24,6 +24,15 @@ dependencies:
   settings_feature:
     path: settings_feature
 
+  contacts_feature:
+    path: contacts_feature
+  contacts_repository:
+    path: contacts_repository
+  contacts_repository_impl:
+    path: contacts_repository_impl
+  contacts_service:
+    path: contacts_service
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

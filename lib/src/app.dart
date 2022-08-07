@@ -1,3 +1,4 @@
+import 'package:contacts_feature/contacts_feature.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -11,9 +12,11 @@ class MyApp extends StatelessWidget {
   const MyApp({
     Key? key,
     required this.settingsController,
+    required this.contactsController,
   }) : super(key: key);
 
   final SettingsController settingsController;
+  final ContactsController contactsController;
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +52,7 @@ class MyApp extends StatelessWidget {
           //
           // The appTitle is defined in .arb files found in the localization
           // directory.
-          onGenerateTitle: (BuildContext context) =>
-              AppLocalizations.of(context)!.appTitle,
+          onGenerateTitle: (BuildContext context) => AppLocalizations.of(context)!.appTitle,
 
           // Define a light and dark color theme. Then, read the user's
           // preferred ThemeMode (light, dark, or system default) from the
@@ -59,8 +61,6 @@ class MyApp extends StatelessWidget {
           darkTheme: ThemeData.dark(),
           themeMode: settingsController.themeMode,
 
-          // Define a function to handle named routes in order to support
-          // Flutter web url navigation and deep linking.
           onGenerateRoute: (RouteSettings routeSettings) {
             return MaterialPageRoute<void>(
               settings: routeSettings,
@@ -70,9 +70,9 @@ class MyApp extends StatelessWidget {
                     return SettingsView(controller: settingsController);
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
-                  case SampleItemListView.routeName:
+                  case ContactsView.routeName:
                   default:
-                    return const SampleItemListView();
+                    return ContactsView(controller: contactsController);
                 }
               },
             );
