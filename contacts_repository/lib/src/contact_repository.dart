@@ -1,12 +1,4 @@
-import 'dart:typed_data';
-
-class Contact {
-  final String name;
-  final Uint8List? thumbnail;
-  final List<DateTime>? birthdays;
-
-  Contact({required this.name, this.thumbnail, this.birthdays});
-}
+import 'package:domain/domain.dart';
 
 abstract class ContactRepository {
   Future<bool> requestPermission();

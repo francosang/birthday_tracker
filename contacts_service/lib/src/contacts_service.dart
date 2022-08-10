@@ -1,20 +1,7 @@
-library contacts_service;
-
 import 'dart:core';
 
+import 'package:domain/domain.dart';
 import 'package:contacts_repository/contacts_repository.dart';
-
-class ContactsSeparated {
-  final List<Contact> withBirthdays;
-  final List<Contact> allOthers;
-
-  ContactsSeparated({
-    required this.withBirthdays,
-    required this.allOthers,
-  });
-
-  ContactsSeparated.empty() : this(withBirthdays: [], allOthers: []);
-}
 
 class ContactService {
   final ContactRepository _contactRepository;

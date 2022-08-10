@@ -1,4 +1,4 @@
-name: contacts_service
+name: domain
 description: A new Flutter package project.
 version: 0.0.1
 
@@ -11,10 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  contacts_repository:
-    path: ../contacts_repository
-  domain:
-    path: ../domain
 
 dev_dependencies:
   flutter_test:

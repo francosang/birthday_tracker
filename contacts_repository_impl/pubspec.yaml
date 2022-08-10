@@ -11,9 +11,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_contacts: ^1.1.5
   contacts_repository:
     path: ../contacts_repository
-  flutter_contacts: ^1.1.5
+  domain:
+    path: ../domain
 
 dev_dependencies:
   flutter_test:

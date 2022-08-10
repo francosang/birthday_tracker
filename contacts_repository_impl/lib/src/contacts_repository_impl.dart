@@ -1,5 +1,5 @@
 import 'package:contacts_repository/contacts_repository.dart';
-
+import 'package:domain/domain.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as lib;
 
 class ContactsRepositoryImpl extends ContactRepository {
@@ -12,9 +12,6 @@ class ContactsRepositoryImpl extends ContactRepository {
   Future<List<Contact>> getContacts() async {
     final contacts = await lib.FlutterContacts.getContacts(withThumbnail: true, withProperties: true);
     return contacts.map((e) {
-
-      print('e: ${e.displayName}');
-
       return Contact(
           name: e.displayName,
           thumbnail: e.thumbnail,
