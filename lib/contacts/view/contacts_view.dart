@@ -15,21 +15,26 @@ class ContactsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ContactsCubit(context.read())..load(),
-      child: const ContactsView(),
+      create: (context) => ContactsCubit(
+        context.read(),
+        context.read(),
+      )..load(),
+      child: ContactsView(),
     );
   }
 }
 
 class ContactsFilterButton extends StatelessWidget {
-  const ContactsFilterButton({super.key});
+  final GlobalKey<PopupMenuButtonState<ContactsFilter>> popupMenuKey;
+
+  const ContactsFilterButton({super.key, required this.popupMenuKey});
 
   @override
   Widget build(BuildContext context) {
     final activeFilter =
         context.select((ContactsCubit bloc) => bloc.state.filter);
-
     return PopupMenuButton<ContactsFilter>(
+      key: popupMenuKey,
       shape: const ContinuousRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
@@ -50,7 +55,7 @@ class ContactsFilterButton extends StatelessWidget {
           PopupMenuItem(
             value: ContactsFilter.missingBirthday,
             child: Text('Show only contacts with unknown birthdays'),
-          )
+          ),
         ];
       },
       icon: const Icon(Icons.filter_list_rounded),
@@ -59,15 +64,18 @@ class ContactsFilterButton extends StatelessWidget {
 }
 
 class ContactsView extends StatelessWidget {
-  const ContactsView({super.key});
+  final _filterButtonGlobalKey =
+      GlobalKey<PopupMenuButtonState<ContactsFilter>>();
+
+  ContactsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
-        actions: const [
-          ContactsFilterButton(),
+        actions: [
+          ContactsFilterButton(popupMenuKey: _filterButtonGlobalKey),
         ],
       ),
       body: MultiBlocListener(
@@ -106,8 +114,28 @@ class ContactsView extends StatelessWidget {
             } else if (state.contacts.isEmpty) {
               return Center(
                 child: Text(
-                  "No contacts found with the selected filters.",
+                  "No contacts found.",
                   style: Theme.of(context).textTheme.caption,
+                ),
+              );
+            } else if (state.filteredContacts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "No contacts found for the filter selected.",
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        print(_filterButtonGlobalKey.currentState);
+                        _filterButtonGlobalKey.currentState?.showButtonMenu();
+                      },
+                      child: const Text('Change Filter'),
+                    ),
+                  ],
                 ),
               );
             }

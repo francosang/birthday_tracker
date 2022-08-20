@@ -36,6 +36,12 @@ dependencies:
   contacts_impl:
     path: packages/contacts_impl
 
+  # Contacts
+  permissions:
+    path: permissions
+  permissions_impl:
+    path: packages/permissions_impl
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
