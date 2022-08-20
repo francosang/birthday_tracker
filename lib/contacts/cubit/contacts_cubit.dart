@@ -30,12 +30,21 @@ class ContactsCubit extends Cubit<ContactsState> {
       await _permissionsService.openAppSettings();
     }
 
-    print(contacts);
-
     emit(state.copyWith(
       loading: false,
       contacts: contacts,
       hasPermission: hasPermissions,
+    ));
+  }
+
+  void refresh() async {
+    emit(state.copyWith(loading: true));
+
+    final contacts = await _contactService.getContacts();
+
+    emit(state.copyWith(
+      loading: false,
+      contacts: contacts,
     ));
   }
 

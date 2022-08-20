@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:birthday_tracker/contacts/cubit/contacts_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_state.dart';
 import 'package:birthday_tracker/contacts/model/contact_filter.dart';
@@ -75,6 +77,9 @@ class ContactsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Contacts'),
         actions: [
+          IconButton(onPressed: () {
+            context.read<ContactsCubit>().refresh();
+          }, icon: const Icon(Icons.refresh)),
           ContactsFilterButton(popupMenuKey: _filterButtonGlobalKey),
         ],
       ),
@@ -130,7 +135,6 @@ class ContactsView extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        print(_filterButtonGlobalKey.currentState);
                         _filterButtonGlobalKey.currentState?.showButtonMenu();
                       },
                       child: const Text('Change Filter'),
@@ -175,29 +179,63 @@ class ContactListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final birthday = contact.birthdays?.firstOrNull?.toString();
-    return ListTile(
-      key: Key('ContactListTile_${contact.id}'),
-      onTap: onTap,
-      title: Text(
-        contact.name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: birthday != null
-          ? Text(
-              birthday,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      leading: Checkbox(
-        shape: const ContinuousRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: ListTile(
+        key: Key('ContactListTile_${contact.id}'),
+        onTap: onTap,
+        title: Text(
+          contact.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        value: birthday != null,
-        onChanged: null,
+        subtitle: birthday != null
+            ? Text(
+                birthday,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : const Text(
+                'Missing birthday date',
+                maxLines: 1,
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+        leading: ContactAvatar(
+          photoOrThumbnail: contact.thumbnail,
+        ),
+        trailing: TextButton(
+          child: const Text('Add birthday'),
+          onPressed: () {},
+        ),
       ),
-      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+    );
+  }
+}
+
+class ContactAvatar extends StatelessWidget {
+  final Uint8List? photoOrThumbnail;
+  final double radius;
+  final IconData defaultIcon;
+
+  const ContactAvatar({
+    super.key,
+    this.photoOrThumbnail,
+    this.radius = 32.0,
+    this.defaultIcon = Icons.person,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final photoOrThumbnail = this.photoOrThumbnail;
+    if (photoOrThumbnail != null) {
+      return CircleAvatar(
+        backgroundImage: MemoryImage(photoOrThumbnail),
+        radius: radius,
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      child: Icon(defaultIcon),
     );
   }
 }
