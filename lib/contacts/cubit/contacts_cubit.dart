@@ -52,4 +52,25 @@ class ContactsCubit extends Cubit<ContactsState> {
     if (filterType == null) return;
     emit(state.copyWith(filter: filterType));
   }
+
+  void addContactBirthday({
+    required Contact contact,
+    required DateTime? birthDate,
+  }) async {
+    emit(state.copyWith(loading: true));
+
+    if (birthDate == null || (contact.birthdays?.isNotEmpty ?? true)) return;
+
+    contact.birthdays?.add(birthDate);
+
+    final update = contact.copyWith(birthdays: contact.birthdays);
+    await _contactService.updateContact(update);
+
+    final contacts = await _contactService.getContacts();
+
+    emit(state.copyWith(
+      loading: false,
+      contacts: contacts,
+    ));
+  }
 }

@@ -77,9 +77,12 @@ class ContactsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Contacts'),
         actions: [
-          IconButton(onPressed: () {
-            context.read<ContactsCubit>().refresh();
-          }, icon: const Icon(Icons.refresh)),
+          IconButton(
+            onPressed: () {
+              context.read<ContactsCubit>().refresh();
+            },
+            icon: const Icon(Icons.refresh),
+          ),
           ContactsFilterButton(popupMenuKey: _filterButtonGlobalKey),
         ],
       ),
@@ -146,17 +149,25 @@ class ContactsView extends StatelessWidget {
 
             return CupertinoScrollbar(
               child: ListView(
-                children: [
-                  for (final contact in state.filteredContacts)
-                    ContactListTile(
-                      contact: contact,
-                      onTap: () {
-                        // Navigator.of(context).push(
-                        //   EditTodoPage.route(initialTodo: todo),
-                        // );
-                      },
-                    ),
-                ],
+                children: state.filteredContacts.map((contact) {
+                  return ContactListTile(
+                    contact: contact,
+                    onTap: () {
+                      showDatePicker(
+                        context: context,
+                        initialEntryMode: DatePickerEntryMode.input,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.fromMillisecondsSinceEpoch(0),
+                        lastDate: DateTime.now(),
+                      ).then((date) {
+                        context.read<ContactsCubit>().addContactBirthday(
+                              contact: contact,
+                              birthDate: date,
+                            );
+                      });
+                    },
+                  );
+                }).toList(),
               ),
             );
           },
@@ -183,7 +194,6 @@ class ContactListTile extends StatelessWidget {
       padding: const EdgeInsets.only(top: 18),
       child: ListTile(
         key: Key('ContactListTile_${contact.id}'),
-        onTap: onTap,
         title: Text(
           contact.name,
           maxLines: 1,
@@ -203,10 +213,12 @@ class ContactListTile extends StatelessWidget {
         leading: ContactAvatar(
           photoOrThumbnail: contact.thumbnail,
         ),
-        trailing: TextButton(
-          child: const Text('Add birthday'),
-          onPressed: () {},
-        ),
+        trailing: contact.birthdays?.isEmpty ?? true
+            ? TextButton(
+                onPressed: onTap,
+                child: const Text('Add birthday'),
+              )
+            : null,
       ),
     );
   }
