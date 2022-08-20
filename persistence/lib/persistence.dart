@@ -1,3 +1,3 @@
 library persistence;
 
-export 'src/values_repository.dart';
+export 'src/persistence_service.dart';
