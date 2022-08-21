@@ -14,7 +14,7 @@ class ContactsCubit extends Cubit<ContactsState> {
     this._permissionsService,
   ) : super(const ContactsState());
 
-  void load() async {
+  Future<void> load() async {
     emit(const ContactsState(loading: true));
 
     bool hasPermissions = false;
@@ -37,7 +37,7 @@ class ContactsCubit extends Cubit<ContactsState> {
     ));
   }
 
-  void refresh() async {
+  Future<void> refresh() async {
     emit(state.copyWith(loading: true));
 
     final contacts = await _contactService.getContacts();
@@ -53,7 +53,7 @@ class ContactsCubit extends Cubit<ContactsState> {
     emit(state.copyWith(filter: filterType));
   }
 
-  void addContactBirthday({
+  Future<void> addContactBirthday({
     required Contact contact,
     required DateTime? birthDate,
   }) async {
@@ -70,6 +70,27 @@ class ContactsCubit extends Cubit<ContactsState> {
 
     emit(state.copyWith(
       loading: false,
+      contacts: contacts,
+    ));
+  }
+
+  Future<void> ignoreContact(Contact contact) async {
+    _contactService.ignoreContact(contact);
+
+    final contacts = await _contactService.getContacts();
+
+    emit(state.copyWith(
+        loading: false, contacts: contacts, lastIgnoredContact: contact));
+  }
+
+  Future<void> undoIgnoreContact(Contact contact) async {
+    _contactService.activateContact(contact);
+
+    final contacts = await _contactService.getContacts();
+
+    emit(state.copyWith(
+      loading: false,
+      lastIgnoredContact: null,
       contacts: contacts,
     ));
   }

@@ -4,4 +4,10 @@ abstract class PersistenceService {
   Future<String> getStringDefLazy(String key, String Function() def);
 
   Future<void> setString(String key, String value);
+
+  Future<List<String>> getStringArray(
+    String key, [
+        List<String> Function()? def,
+  ]);
+  Future<void> setStringArray(String key, List<String> array);
 }

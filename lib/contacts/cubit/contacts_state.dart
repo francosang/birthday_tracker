@@ -6,6 +6,7 @@ class ContactsState {
   final ContactsFilter filter;
   final bool loading;
   final bool hasPermission;
+  final Contact? lastIgnoredContact;
   final String? error;
 
   const ContactsState({
@@ -13,6 +14,7 @@ class ContactsState {
     this.filter = ContactsFilter.withBirthday,
     this.hasPermission = true,
     this.loading = false,
+    this.lastIgnoredContact,
     this.error,
   });
 
@@ -23,6 +25,7 @@ class ContactsState {
     ContactsFilter? filter,
     bool? loading,
     bool? hasPermission,
+    Contact? lastIgnoredContact,
     String? error,
   }) {
     return ContactsState(
@@ -30,6 +33,7 @@ class ContactsState {
       error: error ?? this.error,
       loading: loading ?? this.loading,
       hasPermission: hasPermission ?? this.hasPermission,
+      lastIgnoredContact: lastIgnoredContact ?? this.lastIgnoredContact,
       filter: filter ?? this.filter,
     );
   }

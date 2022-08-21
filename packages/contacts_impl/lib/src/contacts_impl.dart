@@ -1,14 +1,28 @@
 import 'package:contacts/contacts.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as lib;
+import 'package:persistence/persistence.dart';
+
+const _ignoredContactsKey = 'ignored_contacts';
 
 class ContactServiceImpl extends ContactService {
+  final PersistenceService _persistenceService;
+
+  ContactServiceImpl(this._persistenceService);
+
   @override
   Future<List<Contact>> getContacts() async {
     final contacts = await lib.FlutterContacts.getContacts(
       withThumbnail: true,
       withProperties: true,
     );
-    return contacts.map((e) {
+
+    final ignoredContacts = (await _persistenceService.getStringArray(
+            _ignoredContactsKey, () => []))
+        .toSet();
+
+    return contacts
+        .where((element) => !ignoredContacts.contains(element.id))
+        .map((e) {
       return Contact(
         id: e.id,
         name: e.displayName,
@@ -46,5 +60,21 @@ class ContactServiceImpl extends ContactService {
         [];
 
     await lib.FlutterContacts.updateContact(fetched);
+  }
+
+  @override
+  Future<void> ignoreContact(Contact contact) async {
+    final ignoredContacts =
+        await _persistenceService.getStringArray(_ignoredContactsKey, () => []);
+    ignoredContacts.add(contact.id);
+    _persistenceService.setStringArray(_ignoredContactsKey, ignoredContacts);
+  }
+
+  @override
+  Future<void> activateContact(Contact contact) async {
+    final ignoredContacts =
+        await _persistenceService.getStringArray(_ignoredContactsKey, () => []);
+    ignoredContacts.removeWhere((element) => element == contact.id);
+    _persistenceService.setStringArray(_ignoredContactsKey, ignoredContacts);
   }
 }

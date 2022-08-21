@@ -14,15 +14,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // TODO: Move to Provider injection
-  // TODO: Move SettingsController to Bloc
-  final settingsController =
-      SettingsController(ThemeSettingsService(PersistenceServiceImpl()));
+  final persistence = PersistenceServiceImpl();
+  // TODO: Move to Provider injection
+  final settings = ThemeSettingsService(persistence);
+  // TODO: Move to Bloc
+  final settingsController = SettingsController(settings);
   await settingsController.loadSettings();
 
   runApp(
     MultiProvider(
       providers: [
-        Provider<ContactService>(create: (_) => ContactServiceImpl()),
+        Provider<ContactService>(
+            create: (_) => ContactServiceImpl(persistence)),
         Provider<PermissionsService>(create: (_) => PermissionsServiceImpl()),
       ],
       child: MyApp(

@@ -103,6 +103,30 @@ class ContactsView extends StatelessWidget {
               }
             },
           ),
+          BlocListener<ContactsCubit, ContactsState>(
+            listenWhen: (previous, current) =>
+                previous.lastIgnoredContact != current.lastIgnoredContact &&
+                current.lastIgnoredContact != null,
+            listener: (context, state) {
+              final ignoredContact = state.lastIgnoredContact!;
+              final messenger = ScaffoldMessenger.of(context);
+              messenger
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text('Todo "${ignoredContact.name}" deleted.'),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        messenger.hideCurrentSnackBar();
+                        context
+                            .read<ContactsCubit>().undoIgnoreContact(ignoredContact);
+                      },
+                    ),
+                  ),
+                );
+            },
+          ),
         ],
         child: BlocBuilder<ContactsCubit, ContactsState>(
           builder: (context, state) {
@@ -152,6 +176,13 @@ class ContactsView extends StatelessWidget {
                 children: state.filteredContacts.map((contact) {
                   return ContactListTile(
                     contact: contact,
+                    onDismissed: (_) {
+                      try {
+                        context.read<ContactsCubit>().ignoreContact(contact);
+                      } catch (err) {
+                        print(err);
+                      }
+                    },
                     onTap: () {
                       showDatePicker(
                         context: context,
@@ -181,44 +212,60 @@ class ContactListTile extends StatelessWidget {
   const ContactListTile({
     super.key,
     required this.contact,
+    this.onDismissed,
     this.onTap,
   });
 
   final Contact contact;
   final VoidCallback? onTap;
+  final DismissDirectionCallback? onDismissed;
 
   @override
   Widget build(BuildContext context) {
     final birthday = contact.birthdays?.firstOrNull?.toString();
-    return Padding(
-      padding: const EdgeInsets.only(top: 18),
-      child: ListTile(
-        key: Key('ContactListTile_${contact.id}'),
-        title: Text(
-          contact.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+    return Dismissible(
+      key: Key('${ContactListTile}_dismissible_${contact.id}'),
+      onDismissed: onDismissed,
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        color: Theme.of(context).colorScheme.error,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: const Icon(
+          Icons.person_off,
+          color: Color(0xAAFFFFFF),
         ),
-        subtitle: birthday != null
-            ? Text(
-                birthday,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : const Text(
-                'Missing birthday date',
-                maxLines: 1,
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-        leading: ContactAvatar(
-          photoOrThumbnail: contact.thumbnail,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 18),
+        child: ListTile(
+          key: Key('ContactListTile_${contact.id}'),
+          title: Text(
+            contact.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: birthday != null
+              ? Text(
+                  birthday,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : const Text(
+                  'Missing birthday date',
+                  maxLines: 1,
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+          leading: ContactAvatar(
+            photoOrThumbnail: contact.thumbnail,
+          ),
+          trailing: contact.birthdays?.isEmpty ?? true
+              ? TextButton(
+                  onPressed: onTap,
+                  child: const Text('Add birthday'),
+                )
+              : null,
         ),
-        trailing: contact.birthdays?.isEmpty ?? true
-            ? TextButton(
-                onPressed: onTap,
-                child: const Text('Add birthday'),
-              )
-            : null,
       ),
     );
   }
