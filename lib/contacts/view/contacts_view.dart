@@ -248,42 +248,38 @@ class ContactListTile extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         color: Theme.of(context).colorScheme.error,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: const Icon(
           Icons.person_off,
           color: Color(0xAAFFFFFF),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 18),
-        child: ListTile(
-          key: Key('ContactListTile_${contact.id}'),
-          title: Text(
-            contact.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: birthday != null
-              ? Text(
-                  birthday,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : const Text(
-                  'Missing birthday date',
-                  maxLines: 1,
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                ),
-          leading: ContactAvatar(
-            photoOrThumbnail: contact.thumbnail,
-          ),
-          trailing: contact.birthdays?.isEmpty ?? true
-              ? TextButton(
-                  onPressed: onTap,
-                  child: const Text('Add birthday'),
-                )
-              : null,
+      child: ListTile(
+        key: Key('ContactListTile_${contact.id}'),
+        title: Text(
+          contact.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
+        subtitle: birthday != null
+            ? Text(
+                birthday,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : const Text(
+                'Missing birthday date',
+                maxLines: 1,
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+        leading: ContactAvatar(
+          photoOrThumbnail: contact.thumbnail,
+        ),
+        trailing: contact.birthdays?.isEmpty ?? true
+            ? TextButton(
+                onPressed: onTap,
+                child: const Text('Add birthday'),
+              )
+            : null,
       ),
     );
   }
