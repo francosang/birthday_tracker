@@ -25,7 +25,8 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<ContactService>(
-            create: (_) => ContactServiceImpl(persistence)),
+          create: (_) => ContactServiceImpl(persistence),
+        ),
         Provider<PermissionsService>(create: (_) => PermissionsServiceImpl()),
       ],
       child: MyApp(

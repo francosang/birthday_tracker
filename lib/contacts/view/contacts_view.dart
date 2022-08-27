@@ -120,7 +120,8 @@ class ContactsView extends StatelessWidget {
                       onPressed: () {
                         messenger.hideCurrentSnackBar();
                         context
-                            .read<ContactsCubit>().undoIgnoreContact(ignoredContact);
+                            .read<ContactsCubit>()
+                            .undoIgnoreContact(ignoredContact);
                       },
                     ),
                   ),
@@ -128,80 +129,97 @@ class ContactsView extends StatelessWidget {
             },
           ),
         ],
-        child: BlocBuilder<ContactsCubit, ContactsState>(
-          builder: (context, state) {
-            if (state.contacts.isEmpty && state.loading) {
-              return const Center(child: CupertinoActivityIndicator());
-            } else if (!state.hasPermission) {
-              return Center(
-                child: ElevatedButton(
-                  child: const Text(
-                    "Grant access to Contacts",
-                  ),
-                  onPressed: () {
-                    context.read<ContactsCubit>().load();
-                  },
-                ),
-              );
-            } else if (state.contacts.isEmpty) {
-              return Center(
-                child: Text(
-                  "No contacts found.",
-                  style: Theme.of(context).textTheme.caption,
-                ),
-              );
-            } else if (state.filteredContacts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "No contacts found for the filter selected.",
-                      style: Theme.of(context).textTheme.caption,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        _filterButtonGlobalKey.currentState?.showButtonMenu();
-                      },
-                      child: const Text('Change Filter'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return CupertinoScrollbar(
-              child: ListView(
-                children: state.filteredContacts.map((contact) {
-                  return ContactListTile(
-                    contact: contact,
-                    onDismissed: (_) {
-                      try {
-                        context.read<ContactsCubit>().ignoreContact(contact);
-                      } catch (err) {
-                        print(err);
-                      }
-                    },
-                    onTap: () {
-                      showDatePicker(
-                        context: context,
-                        initialEntryMode: DatePickerEntryMode.input,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.fromMillisecondsSinceEpoch(0),
-                        lastDate: DateTime.now(),
-                      ).then((date) {
-                        context.read<ContactsCubit>().addContactBirthday(
-                              contact: contact,
-                              birthDate: date,
-                            );
-                      });
-                    },
-                  );
-                }).toList(),
+        child: Column(
+          children: [
+            const ListTile(
+              title: Text(
+                'Progress',
+                style: TextStyle(fontWeight: FontWeight.w500),
               ),
-            );
-          },
+              subtitle: LinearProgressIndicator(value: 0.5),
+            ),
+            const Divider(),
+            Expanded(
+              child: BlocBuilder<ContactsCubit, ContactsState>(
+                builder: (context, state) {
+                  if (state.contacts.isEmpty && state.loading) {
+                    return const Center(child: CupertinoActivityIndicator());
+                  } else if (!state.hasPermission) {
+                    return Center(
+                      child: ElevatedButton(
+                        child: const Text(
+                          "Grant access to Contacts",
+                        ),
+                        onPressed: () {
+                          context.read<ContactsCubit>().load();
+                        },
+                      ),
+                    );
+                  } else if (state.contacts.isEmpty) {
+                    return Center(
+                      child: Text(
+                        "No contacts found.",
+                        style: Theme.of(context).textTheme.caption,
+                      ),
+                    );
+                  } else if (state.filteredContacts.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "No contacts found for the filter selected.",
+                            style: Theme.of(context).textTheme.caption,
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              _filterButtonGlobalKey.currentState
+                                  ?.showButtonMenu();
+                            },
+                            child: const Text('Change Filter'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return CupertinoScrollbar(
+                    child: ListView(
+                      children: state.filteredContacts.map((contact) {
+                        return ContactListTile(
+                          contact: contact,
+                          onDismissed: (_) {
+                            try {
+                              context
+                                  .read<ContactsCubit>()
+                                  .ignoreContact(contact);
+                            } catch (err) {
+                              print(err);
+                            }
+                          },
+                          onTap: () {
+                            showDatePicker(
+                              context: context,
+                              initialEntryMode: DatePickerEntryMode.input,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime.fromMillisecondsSinceEpoch(0),
+                              lastDate: DateTime.now(),
+                            ).then((date) {
+                              context.read<ContactsCubit>().addContactBirthday(
+                                    contact: contact,
+                                    birthDate: date,
+                                  );
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
