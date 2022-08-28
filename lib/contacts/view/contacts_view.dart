@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:birthday_tracker/common/selected_tab_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_state.dart';
 import 'package:birthday_tracker/contacts/model/contact_filter.dart';
@@ -25,9 +24,6 @@ class ContactsPage extends StatelessWidget {
             context.read(),
           )..load(),
         ),
-        BlocProvider(
-          create: (context) => SelectedTabCubit(),
-        )
       ],
       child: ContactsView(),
     );
@@ -55,15 +51,11 @@ class ContactsFilterButton extends StatelessWidget {
       itemBuilder: (context) {
         return const [
           PopupMenuItem(
-            value: ContactsFilter.all,
-            child: Text('Show all contacts'),
-          ),
-          PopupMenuItem(
-            value: ContactsFilter.withBirthday,
+            value: ContactsFilter.knownBirthdays,
             child: Text('Show only contacts with birthdays'),
           ),
           PopupMenuItem(
-            value: ContactsFilter.missingBirthday,
+            value: ContactsFilter.missingBirthdays,
             child: Text('Show only contacts with unknown birthdays'),
           ),
         ];
@@ -148,31 +140,35 @@ class ContactsView extends StatelessWidget {
             ),
             const Divider(),
             Expanded(
-              child: ContactsList(
-                onShowFilterPopUp: () {
-                  _filterButtonGlobalKey.currentState?.showButtonMenu();
-                },
+              child: IndexedStack(
+                children: [
+                  ContactsOverview(
+                    onShowFilterPopUp: () {
+                      _filterButtonGlobalKey.currentState?.showButtonMenu();
+                    },
+                  )
+                ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BlocBuilder<SelectedTabCubit, int>(
-        buildWhen: (prev, cur) => prev != cur,
-        builder: (context, index) {
+      bottomNavigationBar: BlocBuilder<ContactsCubit, ContactsState>(
+        buildWhen: (prev, cur) => prev.filter != cur.filter,
+        builder: (context, state) {
           return BottomNavigationBar(
-            currentIndex: index,
+            currentIndex: tabIndex(state.filter),
             onTap: (index) {
-              context.read<SelectedTabCubit>().updateSelectedTab(index);
+              context.read<ContactsCubit>().updateFilter(tabFilter(index));
             },
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.calendar_month),
-                label: 'Birthdays',
+                label: 'Known Birthdays',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.hide_source),
-                label: 'Missing dates',
+                label: 'Missing Birthdays',
               ),
             ],
           );
@@ -182,10 +178,10 @@ class ContactsView extends StatelessWidget {
   }
 }
 
-class ContactsList extends StatelessWidget {
+class ContactsOverview extends StatelessWidget {
   final VoidCallback? onShowFilterPopUp;
 
-  const ContactsList({Key? key, this.onShowFilterPopUp}) : super(key: key);
+  const ContactsOverview({Key? key, this.onShowFilterPopUp}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

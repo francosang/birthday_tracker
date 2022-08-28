@@ -13,7 +13,7 @@ class ContactsState {
 
   const ContactsState({
     this.contacts = const [],
-    this.filter = ContactsFilter.withBirthday,
+    this.filter = ContactsFilter.knownBirthdays,
     this.hasPermission = true,
     this.loading = false,
     this.lastIgnoredContact,
