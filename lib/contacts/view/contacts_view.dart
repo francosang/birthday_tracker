@@ -25,51 +25,13 @@ class ContactsPage extends StatelessWidget {
           )..load(),
         ),
       ],
-      child: ContactsView(),
-    );
-  }
-}
-
-class ContactsFilterButton extends StatelessWidget {
-  final GlobalKey<PopupMenuButtonState<ContactsFilter>> popupMenuKey;
-
-  const ContactsFilterButton({super.key, required this.popupMenuKey});
-
-  @override
-  Widget build(BuildContext context) {
-    final activeFilter =
-        context.select((ContactsCubit bloc) => bloc.state.filter);
-    return PopupMenuButton<ContactsFilter>(
-      key: popupMenuKey,
-      shape: const ContinuousRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(16)),
-      ),
-      initialValue: activeFilter,
-      onSelected: (filter) {
-        context.read<ContactsCubit>().updateFilter(filter);
-      },
-      itemBuilder: (context) {
-        return const [
-          PopupMenuItem(
-            value: ContactsFilter.knownBirthdays,
-            child: Text('Show only contacts with birthdays'),
-          ),
-          PopupMenuItem(
-            value: ContactsFilter.missingBirthdays,
-            child: Text('Show only contacts with unknown birthdays'),
-          ),
-        ];
-      },
-      icon: const Icon(Icons.filter_list_rounded),
+      child: const ContactsView(),
     );
   }
 }
 
 class ContactsView extends StatelessWidget {
-  final _filterButtonGlobalKey =
-      GlobalKey<PopupMenuButtonState<ContactsFilter>>();
-
-  ContactsView({super.key});
+  const ContactsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +45,28 @@ class ContactsView extends StatelessWidget {
             },
             icon: const Icon(Icons.refresh),
           ),
-          ContactsFilterButton(popupMenuKey: _filterButtonGlobalKey),
+          PopupMenuButton(
+            shape: const ContinuousRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: const Text('Hidden contacts'),
+                  onTap: () {
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        const SnackBar(
+                          content: Text('Feature not available yet'),
+                        ),
+                      );
+                  },
+                ),
+              ];
+            },
+            icon: const Icon(Icons.more_vert),
+          )
         ],
       ),
       body: MultiBlocListener(
@@ -140,14 +123,8 @@ class ContactsView extends StatelessWidget {
             ),
             const Divider(),
             Expanded(
-              child: IndexedStack(
-                children: [
-                  ContactsOverview(
-                    onShowFilterPopUp: () {
-                      _filterButtonGlobalKey.currentState?.showButtonMenu();
-                    },
-                  )
-                ],
+              child: ContactsOverview(
+                onShowFilterPopUp: () {},
               ),
             ),
           ],
