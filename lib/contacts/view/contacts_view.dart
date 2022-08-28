@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:intl/intl.dart';
 
 import 'package:birthday_tracker/contacts/cubit/contacts_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_state.dart';
@@ -116,12 +117,26 @@ class ContactsView extends StatelessWidget {
         ],
         child: Column(
           children: [
-            const ListTile(
-              title: Text(
+            ListTile(
+              title: const Text(
                 'Progress',
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
-              subtitle: LinearProgressIndicator(value: 0.5),
+              subtitle: BlocBuilder<ContactsCubit, ContactsState>(
+                builder: (context, state) {
+                  double? progress;
+                  if (state.contacts.isNotEmpty) {
+                    progress = ContactsFilter.knownBirthdays
+                        .applyAll(state.contacts)
+                        .length /
+                        state.contacts.length;
+                  }
+
+                  return LinearProgressIndicator(
+                    value: progress,
+                  );
+                },
+              ),
             ),
             const Divider(),
             Expanded(
@@ -218,12 +233,34 @@ class ContactsOverview extends StatelessWidget {
                     print(err);
                   }
                 },
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialEntryMode: DatePickerEntryMode.input,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMillisecondsSinceEpoch(0),
+                    lastDate: DateTime.now(),
+                  ).then((date) {
+                    context.read<ContactsCubit>().addContactBirthday(
+                      contact: contact,
+                      birthDate: date,
+                    );
+                  });
+                },
               );
             }).toList(),
           ),
         );
       },
     );
+  }
+}
+
+final DateFormat formatter = DateFormat('MMMMd');
+
+extension on DateTime {
+  String format(DateFormat format) {
+    return format.format(this);
   }
 }
 
@@ -241,7 +278,7 @@ class ContactListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final birthday = contact.birthdays?.firstOrNull?.toString();
+    final birthday = contact.birthdays?.firstOrNull?.format(formatter);
     return Dismissible(
       key: Key('${ContactListTile}_dismissible_${contact.id}'),
       onDismissed: onDismissed,
