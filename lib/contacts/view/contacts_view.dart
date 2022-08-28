@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:birthday_tracker/common/selected_tab_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_state.dart';
 import 'package:birthday_tracker/contacts/model/contact_filter.dart';
@@ -16,11 +17,18 @@ class ContactsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ContactsCubit(
-        context.read(),
-        context.read(),
-      )..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ContactsCubit(
+            context.read(),
+            context.read(),
+          )..load(),
+        ),
+        BlocProvider(
+          create: (context) => SelectedTabCubit(),
+        )
+      ],
       child: ContactsView(),
     );
   }
@@ -140,88 +148,119 @@ class ContactsView extends StatelessWidget {
             ),
             const Divider(),
             Expanded(
-              child: BlocBuilder<ContactsCubit, ContactsState>(
-                builder: (context, state) {
-                  if (state.contacts.isEmpty && state.loading) {
-                    return const Center(child: CupertinoActivityIndicator());
-                  } else if (!state.hasPermission) {
-                    return Center(
-                      child: ElevatedButton(
-                        child: const Text(
-                          "Grant access to Contacts",
-                        ),
-                        onPressed: () {
-                          context.read<ContactsCubit>().load();
-                        },
-                      ),
-                    );
-                  } else if (state.contacts.isEmpty) {
-                    return Center(
-                      child: Text(
-                        "No contacts found.",
-                        style: Theme.of(context).textTheme.caption,
-                      ),
-                    );
-                  } else if (state.filteredContacts.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "No contacts found for the filter selected.",
-                            style: Theme.of(context).textTheme.caption,
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {
-                              _filterButtonGlobalKey.currentState
-                                  ?.showButtonMenu();
-                            },
-                            child: const Text('Change Filter'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return CupertinoScrollbar(
-                    child: ListView(
-                      children: state.filteredContacts.map((contact) {
-                        return ContactListTile(
-                          contact: contact,
-                          onDismissed: (_) {
-                            try {
-                              context
-                                  .read<ContactsCubit>()
-                                  .ignoreContact(contact);
-                            } catch (err) {
-                              print(err);
-                            }
-                          },
-                          onTap: () {
-                            showDatePicker(
-                              context: context,
-                              initialEntryMode: DatePickerEntryMode.input,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.fromMillisecondsSinceEpoch(0),
-                              lastDate: DateTime.now(),
-                            ).then((date) {
-                              context.read<ContactsCubit>().addContactBirthday(
-                                    contact: contact,
-                                    birthDate: date,
-                                  );
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  );
+              child: ContactsList(
+                onShowFilterPopUp: () {
+                  _filterButtonGlobalKey.currentState?.showButtonMenu();
                 },
               ),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: BlocBuilder<SelectedTabCubit, int>(
+        buildWhen: (prev, cur) => prev != cur,
+        builder: (context, index) {
+          return BottomNavigationBar(
+            currentIndex: index,
+            onTap: (index) {
+              context.read<SelectedTabCubit>().updateSelectedTab(index);
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_month),
+                label: 'Birthdays',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.hide_source),
+                label: 'Missing dates',
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ContactsList extends StatelessWidget {
+  final VoidCallback? onShowFilterPopUp;
+
+  const ContactsList({Key? key, this.onShowFilterPopUp}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ContactsCubit, ContactsState>(
+      builder: (context, state) {
+        if (state.contacts.isEmpty && state.loading) {
+          return const Center(child: CupertinoActivityIndicator());
+        } else if (!state.hasPermission) {
+          return Center(
+            child: ElevatedButton(
+              child: const Text(
+                "Grant access to Contacts",
+              ),
+              onPressed: () {
+                context.read<ContactsCubit>().load();
+              },
+            ),
+          );
+        } else if (state.contacts.isEmpty) {
+          return Center(
+            child: Text(
+              "No contacts found.",
+              style: Theme.of(context).textTheme.caption,
+            ),
+          );
+        } else if (state.filteredContacts.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "No contacts found for the filter selected.",
+                  style: Theme.of(context).textTheme.caption,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: onShowFilterPopUp,
+                  child: const Text('Change Filter'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return CupertinoScrollbar(
+          child: ListView(
+            children: state.filteredContacts.map((contact) {
+              return ContactListTile(
+                contact: contact,
+                onDismissed: (_) {
+                  try {
+                    context.read<ContactsCubit>().ignoreContact(contact);
+                  } catch (err) {
+                    print(err);
+                  }
+                },
+                onTap: () {
+                  showDatePicker(
+                    context: context,
+                    initialEntryMode: DatePickerEntryMode.input,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.fromMillisecondsSinceEpoch(0),
+                    lastDate: DateTime.now(),
+                  ).then((date) {
+                    context.read<ContactsCubit>().addContactBirthday(
+                          contact: contact,
+                          birthDate: date,
+                        );
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 }
