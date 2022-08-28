@@ -10,7 +10,7 @@ class ContactServiceImpl extends ContactService {
   ContactServiceImpl(this._persistenceService);
 
   @override
-  Future<List<Contact>> getContacts() async {
+  Future<List<Contact>> getContacts({bool onlyHidden = false}) async {
     final contacts = await lib.FlutterContacts.getContacts(
       withThumbnail: true,
       withProperties: true,
@@ -20,9 +20,18 @@ class ContactServiceImpl extends ContactService {
             _ignoredContactsKey, () => []))
         .toSet();
 
-    return contacts
-        .where((element) => !ignoredContacts.contains(element.id))
-        .map((e) {
+    bool Function(lib.Contact) hiddenPredicate;
+    if (onlyHidden) {
+      hiddenPredicate = (contact) {
+        return ignoredContacts.contains(contact.id);
+      };
+    } else {
+      hiddenPredicate = (contact) {
+        return !ignoredContacts.contains(contact.id);
+      };
+    }
+
+    return contacts.where(hiddenPredicate).map((e) {
       return Contact(
         id: e.id,
         name: e.displayName,
@@ -63,7 +72,7 @@ class ContactServiceImpl extends ContactService {
   }
 
   @override
-  Future<void> ignoreContact(Contact contact) async {
+  Future<void> hideContact(Contact contact) async {
     final ignoredContacts =
         await _persistenceService.getStringArray(_ignoredContactsKey, () => []);
     ignoredContacts.add(contact.id);
@@ -71,7 +80,7 @@ class ContactServiceImpl extends ContactService {
   }
 
   @override
-  Future<void> activateContact(Contact contact) async {
+  Future<void> showContact(Contact contact) async {
     final ignoredContacts =
         await _persistenceService.getStringArray(_ignoredContactsKey, () => []);
     ignoredContacts.removeWhere((element) => element == contact.id);

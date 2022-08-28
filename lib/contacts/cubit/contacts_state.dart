@@ -9,8 +9,6 @@ class ContactsState {
   final Contact? lastIgnoredContact;
   final String? error;
 
-
-
   const ContactsState({
     this.contacts = const [],
     this.filter = ContactsFilter.knownBirthdays,

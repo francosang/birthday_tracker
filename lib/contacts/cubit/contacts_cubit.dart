@@ -74,17 +74,20 @@ class ContactsCubit extends Cubit<ContactsState> {
     ));
   }
 
-  Future<void> ignoreContact(Contact contact) async {
-    _contactService.ignoreContact(contact);
+  Future<void> hideContact(Contact contact) async {
+    _contactService.hideContact(contact);
 
     final contacts = await _contactService.getContacts();
 
     emit(state.copyWith(
-        loading: false, contacts: contacts, lastIgnoredContact: contact));
+      loading: false,
+      contacts: contacts,
+      lastIgnoredContact: contact,
+    ));
   }
 
-  Future<void> undoIgnoreContact(Contact contact) async {
-    _contactService.activateContact(contact);
+  Future<void> undoHideContact(Contact contact) async {
+    _contactService.showContact(contact);
 
     final contacts = await _contactService.getContacts();
 

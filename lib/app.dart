@@ -1,4 +1,5 @@
 import 'package:birthday_tracker/contacts/view/contacts_view.dart';
+import 'package:birthday_tracker/hidden_contacts/view/hidden_contacts_view.dart';
 import 'package:birthday_tracker/settings/settings_controller.dart';
 import 'package:birthday_tracker/settings/settings_view.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +66,8 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
+                  case HiddenContactsPage.routeName:
+                    return const HiddenContactsPage();
                   case ContactsPage.routeName:
                   default:
                     return const ContactsPage();

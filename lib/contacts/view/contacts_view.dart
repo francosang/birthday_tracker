@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:birthday_tracker/contacts/cubit/contacts_cubit.dart';
 import 'package:birthday_tracker/contacts/cubit/contacts_state.dart';
 import 'package:birthday_tracker/contacts/model/contact_filter.dart';
+import 'package:birthday_tracker/hidden_contacts/view/hidden_contacts_view.dart';
 import 'package:contacts/contacts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,23 +46,24 @@ class ContactsView extends StatelessWidget {
             },
             icon: const Icon(Icons.refresh),
           ),
-          PopupMenuButton(
+          PopupMenuButton<int>(
+            onSelected: (value) {
+              if (value == 0) {
+                Navigator.of(context)
+                    .pushNamed(HiddenContactsPage.routeName)
+                    .then((value) {
+                  context.read<ContactsCubit>().refresh();
+                });
+              }
+            },
             shape: const ContinuousRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
             itemBuilder: (context) {
               return [
-                PopupMenuItem(
-                  child: const Text('Hidden contacts'),
-                  onTap: () {
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        const SnackBar(
-                          content: Text('Feature not available yet'),
-                        ),
-                      );
-                  },
+                const PopupMenuItem(
+                  value: 0,
+                  child: Text('Hidden contacts'),
                 ),
               ];
             },
@@ -97,14 +99,14 @@ class ContactsView extends StatelessWidget {
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
                   SnackBar(
-                    content: Text('Todo "${ignoredContact.name}" deleted.'),
+                    content: Text('Contact "${ignoredContact.name}" hidden.'),
                     action: SnackBarAction(
                       label: 'Undo',
                       onPressed: () {
                         messenger.hideCurrentSnackBar();
                         context
                             .read<ContactsCubit>()
-                            .undoIgnoreContact(ignoredContact);
+                            .undoHideContact(ignoredContact);
                       },
                     ),
                   ),
@@ -163,6 +165,7 @@ class ContactsOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ContactsCubit, ContactsState>(
+      buildWhen: (prev, cur) => prev != cur,
       builder: (context, state) {
         if (state.contacts.isEmpty && state.loading) {
           return const Center(child: CupertinoActivityIndicator());
@@ -170,7 +173,7 @@ class ContactsOverview extends StatelessWidget {
           return Center(
             child: ElevatedButton(
               child: const Text(
-                "Grant access to Contacts",
+                'Grant access to Contacts',
               ),
               onPressed: () {
                 context.read<ContactsCubit>().load();
@@ -180,7 +183,7 @@ class ContactsOverview extends StatelessWidget {
         } else if (state.contacts.isEmpty) {
           return Center(
             child: Text(
-              "No contacts found.",
+              'No contacts found.',
               style: Theme.of(context).textTheme.caption,
             ),
           );
@@ -190,7 +193,7 @@ class ContactsOverview extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "No contacts found for the filter selected.",
+                  'No contacts found for the filter selected.',
                   style: Theme.of(context).textTheme.caption,
                 ),
                 const SizedBox(height: 20),
@@ -210,24 +213,10 @@ class ContactsOverview extends StatelessWidget {
                 contact: contact,
                 onDismissed: (_) {
                   try {
-                    context.read<ContactsCubit>().ignoreContact(contact);
+                    context.read<ContactsCubit>().hideContact(contact);
                   } catch (err) {
                     print(err);
                   }
-                },
-                onTap: () {
-                  showDatePicker(
-                    context: context,
-                    initialEntryMode: DatePickerEntryMode.input,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.fromMillisecondsSinceEpoch(0),
-                    lastDate: DateTime.now(),
-                  ).then((date) {
-                    context.read<ContactsCubit>().addContactBirthday(
-                          contact: contact,
-                          birthDate: date,
-                        );
-                  });
                 },
               );
             }).toList(),

@@ -1,8 +1,8 @@
 import 'contact.dart';
 
 abstract class ContactService {
-  Future<List<Contact>> getContacts();
+  Future<List<Contact>> getContacts({bool onlyHidden = false});
   Future<void> updateContact(Contact contact);
-  Future<void> ignoreContact(Contact contact);
-  Future<void> activateContact(Contact contact);
+  Future<void> hideContact(Contact contact);
+  Future<void> showContact(Contact contact);
 }
